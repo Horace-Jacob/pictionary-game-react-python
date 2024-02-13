@@ -1,6 +1,6 @@
 # Pictionary Game
 
-## ** Still Underdevelopment **
+## ** Still Under development **
 
 ### Frontend
 
