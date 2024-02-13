@@ -1,0 +1,6 @@
+.env
+
+/flask_session
+/migrations
+
+/app/client_secret.json

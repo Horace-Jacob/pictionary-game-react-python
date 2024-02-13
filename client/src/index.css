@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap");
+
+@layer components {
+  .nav-link {
+    @apply text-xs hover:text-white;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+
+  .nav-ul {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: row !important;
+    list-style: none;
+    user-select: none;
+    gap: 30px;
+  }
+
+  .game-category-text {
+    @apply text-lg text-start font-bold;
+  }
+
+  .game-creator-text {
+    @apply text-start text-inherit;
+    color: #02203c;
+  }
+
+  .nav {
+    @apply container mx-auto flex items-center justify-center;
+    height: 48px;
+    max-height: 44px;
+  }
+
+  .nav-link-open {
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.2);
+  }
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  /* border-bottom: 0.5px solid rgba(255, 255, 255, 0.2); */
+  input {
+    background: none;
+    border: none;
+    outline: none;
+    width: 160px;
+    min-width: 0;
+    z-index: 1;
+    position: relative;
+    line-height: 18px;
+    margin: 5px 0;
+    font-size: 12px;
+    transition: all 0.6s ease;
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+::selection {
+  background: rgba(#fff, 0.2);
+}
+::-moz-selection {
+  background: rgba(#fff, 0.2);
+}
+
+body {
+  font-family: "Nunito", sans-serif;
+  font-optical-sizing: auto;
+}
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  cursor: pointer;
+  /*background-color: rgba(229, 231, 235, var(--bg-opacity));*/
+}
+::-webkit-scrollbar-track {
+  background-color: rgba(229, 231, 235, var(--bg-opacity));
+  cursor: pointer;
+  /*background: red;*/
+}
+::-webkit-scrollbar-thumb {
+  cursor: pointer;
+  background-color: #a0aec0;
+  /*outline: 1px solid slategrey;*/
+}
