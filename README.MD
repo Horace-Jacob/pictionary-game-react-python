@@ -1,14 +1,14 @@
-Pictionary Game
+# Pictionary Game
 
-# ** Still Underdevelopment **
+## ** Still Underdevelopment **
 
-## Frontend
+### Frontend
 
 - ReactJs with TypeScript
 - Tailwind CSS
 - SocketIO
 
-## Backend
+### Backend
 
 - Python
 - Flask
@@ -17,11 +17,11 @@ Pictionary Game
 - PostgreSQL
 - SQLAlchemy
 
-## Authentication
+### Authentication
 
 - Google OAuth
 
-# ** How to run the project **
+## ** How to run the project **
 
 1. Clone the project repository
 
