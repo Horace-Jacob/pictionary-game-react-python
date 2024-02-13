@@ -3,6 +3,7 @@
 /flask_session
 /migrations
 
+
 /__pycache__
 
 /app/client_secret.json

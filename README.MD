@@ -41,7 +41,7 @@ cd server
 pip install -r requirements.txt
 ```
 
-3. Create a .env file in server directory and add the environment variables as shown in the .env.example files.
+3. Create a .env file in both client and server directories and add the environment variables as shown in the .env.examples files.
 
 4. Start the client
 
@@ -51,6 +51,8 @@ yarn start
 ```
 
 5. Start the server
+
+Download google API credentials for OAUTH from Google Console
 
 ```bash
 cd server

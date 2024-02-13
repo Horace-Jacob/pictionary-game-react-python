@@ -18,7 +18,7 @@ flow = Flow.from_client_secrets_file(client_secrets_file=client_secrets_file,
                                      ["https://www.googleapis.com/auth/userinfo.profile", 
                                       "openid", 
                                       "https://www.googleapis.com/auth/userinfo.email",],
-                                     redirect_uri="http://127.0.0.1:5000/auth/google/callback")
+                                     redirect_uri=app.config["GOOGLE_CALLBACK_URI"])
 
 
 api = Api(app)
@@ -52,7 +52,7 @@ class CallbackResource(Resource):
             )
             db.session.add(user)
             db.session.commit()
-        response = make_response(redirect("http://localhost:3000?jwt={}".format(credentials._id_token)))
+        response = make_response(redirect("{}?jwt={}".format(app.config["CLIENT_URI"], credentials._id_token)))
         return response
 
 class UserList(Resource):
@@ -63,21 +63,6 @@ class UserList(Resource):
         redis_client.set('users', json.dumps(serialized_users))
         return jsonify({'users': serialized_users})
 
-class ProfileResource(Resource):
-    def get(self):
-        
-        user = Users.query.filter_by(email="horacejacob121@gmail.com").first()
-
-        if user:
-            profile_data = {
-                'picture': user.picture
-            }
-
-            return jsonify(profile_data)
-        # else:
-        #     return {"message": "user not found"}
-
 api.add_resource(UserList, '/users')
 api.add_resource(LoginResource, "/login")
 api.add_resource(CallbackResource, "/auth/google/callback")
-api.add_resource(ProfileResource, "/me")
