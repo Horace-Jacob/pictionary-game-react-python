@@ -53,6 +53,7 @@ yarn start
 5. Start the server
 
 ```bash
+cd server
 redis-server
 python run.py
 ```
