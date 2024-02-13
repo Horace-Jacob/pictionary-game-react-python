@@ -26,7 +26,7 @@
 1. Clone the project repository
 
 ```bash
-https://github.com/Horace-Jacob/pictionary-game-react-python.git
+git clone https://github.com/Horace-Jacob/pictionary-game-react-python.git
 ```
 
 2. Go to the project directory and install dependencies for both the client and server
