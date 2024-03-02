@@ -2,6 +2,7 @@ import type { RouteObject } from "react-router-dom";
 import { Home } from "./pages/home.pages";
 import { History } from "./pages/history.pages";
 import { LiveGame } from "./pages/liveGame.pages";
+import TestPage from "./pages/test.pages";
 
 const normalRoutes: RouteObject = {
   path: "*",
@@ -18,6 +19,10 @@ const normalRoutes: RouteObject = {
     {
       path: "history",
       element: <History />,
+    },
+    {
+      path: "test",
+      element: <TestPage />,
     },
   ],
 };

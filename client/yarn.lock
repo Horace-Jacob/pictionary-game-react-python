@@ -2065,6 +2065,11 @@
     "@types/qs" "*"
     "@types/serve-static" "*"
 
+"@types/fabric@^5.3.7":
+  version "5.3.7"
+  resolved "https://registry.yarnpkg.com/@types/fabric/-/fabric-5.3.7.tgz#49c247141168d97d7ae7ca1936e0d4cbe38f2027"
+  integrity sha512-Fd2oN4zg/E6X+85HbmWSpswzcu3rvDfmwtvz1SH0j2av9OFHZDRrkLQ3K16nl6w+mSflrcTfmB719I7wXkfIsw==
+
 "@types/graceful-fs@^4.1.2":
   version "4.1.9"
   resolved "https://registry.yarnpkg.com/@types/graceful-fs/-/graceful-fs-4.1.9.tgz#2a06bc0f68a20ab37b3e36aa238be6abdf49e8b4"
@@ -8082,6 +8087,11 @@ react-scripts@5.0.1:
     workbox-webpack-plugin "^6.4.1"
   optionalDependencies:
     fsevents "^2.3.2"
+
+react-sketch-canvas@^6.2.0:
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/react-sketch-canvas/-/react-sketch-canvas-6.2.0.tgz#4aa1f0b85012f37b8b2ae746a412ab9424badfa9"
+  integrity sha512-Z56RQN0viV9W3Y+DpZfQMi2lf3pO+UB4l+cMwnx7j7pQ9WHkQwN+qZKVFGANgpjXQMyY42NODF/DXjuKPCMf1w==
 
 react-spinners@^0.13.8:
   version "0.13.8"

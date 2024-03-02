@@ -3,7 +3,7 @@ from flask import request
 from flask_socketio import emit
 import secrets
 import string
-# from .tasks import process_drawing
+from .tasks import process_drawing
 import json
 
 room_socket_mapping = {}
@@ -87,7 +87,8 @@ def handleCreateRoom(data):
     redis_client.set(room_code, serialized_data)
     room_socket_mapping[socket_id] = room_code
     emit("createRoom", {"message": room_code},broadcast=True)
-    
+
+
 
 @socketio.on('joinRoom')
 def handleJoinRoom(data):
@@ -123,11 +124,21 @@ def startGame(data):
         deserialized_data['status'] = True
         redis_client.set(room_code, json.dumps(deserialized_data))
 
+@socketio.on("draw")
+def handleDraw(data):
+    room_code = data.get("roomCode")
+    drawing_data = data.get("drawingData")
+    # room_info = redis_client.get(room_code)
+    # deserialized_data = json.loads(room_info)
+    
+    # redis_client.set(room_code, json.dumps(deserialized_data))
+    emit('draw', drawing_data, broadcast=True)
+        
+# @socketio.on('draw')
+# def handle_draw(data):
+#     print(data)
+#     emit('draw', data, broadcast=True)
 
-# @socketio.on("draw")
-# def handleDraw(data):
-#     room_code = data.get('roomCode')
-#     socket_id = request.sid
-#     emit('draw', json.dumps(data), room=room_code)
-#     # Enqueue drawing data to the Redis task queue
-#     q.enqueue(process_drawing, room_code, socket_id, data)
+# @socketio.on('clear')
+# def handle_clear():
+#     emit('clear', broadcast=True)

@@ -19,6 +19,14 @@ export const getUsername = () => {
   }
 };
 
+export const getUserID = () => {
+  const token = localStorage.getItem("token");
+  if (token !== null) {
+    const decodedValue: JwtType = jwtDecode(token);
+    return decodedValue.id;
+  }
+};
+
 export const getUserEmail = () => {
   const token = localStorage.getItem("token");
   if (token !== null) {

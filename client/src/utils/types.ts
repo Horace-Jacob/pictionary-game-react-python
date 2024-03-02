@@ -1,4 +1,5 @@
 export type JwtType = {
+  id: number;
   email: string;
   name: string;
   picture: string;

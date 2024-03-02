@@ -1,79 +1,129 @@
 import React from "react";
 import { useSocket } from "../../lib/SocketProvider";
+import {
+  CanvasPath,
+  ExportImageType,
+  ReactSketchCanvas,
+  ReactSketchCanvasProps,
+  ReactSketchCanvasRef,
+} from "react-sketch-canvas";
 
 interface IDrawBoard {
   roomCode?: string;
 }
 
 export const DrawBoard: React.FC<IDrawBoard> = ({ roomCode }) => {
-  const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
-  const contextRef = React.useRef<CanvasRenderingContext2D | null>(null);
-  const [isDrawing, setIsDrawing] = React.useState<boolean>(false);
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const socket = useSocket();
-
   React.useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    const canvas = canvasRef.current!;
+    const context = canvas.getContext("2d")!;
+    let drawing = false;
 
-      const context = canvas.getContext("2d");
-      if (context) {
-        context.lineCap = "round";
-        context.strokeStyle = "black";
-        context.lineWidth = 5;
-        contextRef.current = context;
-      }
-    }
-    socket.on("draw", (data) => {
-      handleRemoteDraw(data);
-    });
+    const startDrawing = (event: MouseEvent) => {
+      drawing = true;
+      context.beginPath();
+      context.moveTo(
+        event.clientX - canvas.offsetLeft,
+        event.clientY - canvas.offsetTop
+      );
+    };
+
+    const draw = (event: MouseEvent) => {
+      if (!drawing) return;
+      context.lineTo(
+        event.clientX - canvas.offsetLeft,
+        event.clientY - canvas.offsetTop
+      );
+      context.stroke();
+    };
+
+    const stopDrawing = () => {
+      drawing = false;
+      const data = {
+        roomCode: roomCode,
+        drawingData: canvas.toDataURL(),
+      };
+      socket.emit("draw", data);
+    };
+
+    canvas.addEventListener("mousedown", startDrawing);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDrawing);
 
     return () => {
-      socket.off("draw");
+      canvas.removeEventListener("mousedown", startDrawing);
+      canvas.removeEventListener("mousemove", draw);
+      canvas.removeEventListener("mouseup", stopDrawing);
     };
   }, []);
 
-  const handleRemoteDraw = (data: any) => {
-    const { offsetX, offsetY } = data;
-    contextRef.current?.lineTo(offsetX, offsetY);
-    contextRef.current?.stroke();
-  };
-
-  const startDrawing = ({
-    nativeEvent,
-  }: React.MouseEvent<HTMLCanvasElement>) => {
-    const { offsetX, offsetY } = nativeEvent;
-    contextRef.current?.beginPath();
-    contextRef.current?.moveTo(offsetX, offsetY);
-    setIsDrawing(true);
-    socket.emit("draw", { roomCode, offsetX, offsetY });
-  };
-
-  const draw = ({ nativeEvent }: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
-
-    const { offsetX, offsetY } = nativeEvent;
-    contextRef.current?.lineTo(offsetX, offsetY);
-    contextRef.current?.stroke();
-    socket.emit("draw", { roomCode, offsetX, offsetY });
-  };
-
-  const endDrawing = () => {
-    contextRef.current?.closePath();
-    setIsDrawing(false);
-  };
+  React.useEffect(() => {
+    socket.on("draw", (data: string) => {
+      const canvas = canvasRef.current!;
+      const context = canvas.getContext("2d")!;
+      const img = new Image();
+      img.onload = () => {
+        context.drawImage(img, 0, 0);
+      };
+      img.src = data;
+    });
+  }, []);
 
   return (
-    <div className="flex items-center justify-center h-screen">
+    <div className="flex justify-center items-center h-screen">
       <canvas
         ref={canvasRef}
-        onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={endDrawing}
-        onMouseOut={endDrawing}
-        className="border border-gray-300"
+        width={800}
+        height={600}
+        className="border"
+        style={{ touchAction: "none" }}
       />
     </div>
   );
 };
+
+// export const DrawBoard: React.FC<IDrawBoard> = ({ roomCode }) => {
+//   const [paths, setPaths] = React.useState<CanvasPath[]>([]);
+//   const socket = useSocket();
+//   const [lastStroke, setLastStroke] = React.useState<{
+//     stroke: CanvasPath | null;
+//     isEraser: boolean | null;
+//   }>({ stroke: null, isEraser: null });
+//   const canvasRef = React.createRef<ReactSketchCanvasRef>();
+//   const onChange = (updatedPaths: CanvasPath[]): void => {
+//     setPaths(updatedPaths);
+
+//     socket.emit("draw", { roomCode, paths: paths });
+//   };
+
+//   const clearCanvas = (): void => {
+//     setPaths([]);
+//     socket.emit("clear", { roomCode });
+//   };
+
+//   React.useEffect(() => {
+//     socket.on("draw", (data) => {
+//       // Update paths based on received data
+//       setPaths(data.paths);
+//     });
+
+//     socket.on("clear", () => {
+//       // Clear the canvas on receiving clear event
+//       setPaths([]);
+//     });
+
+//     return () => {
+//       // Cleanup on component unmount
+//       socket.disconnect();
+//     };
+//   }, []);
+
+//   return (
+//     <ReactSketchCanvas
+//       ref={canvasRef}
+//       onChange={onChange}
+//       // onStroke={(stroke, isEraser) => setLastStroke({ stroke, isEraser })}
+//     />
+//   );
+// };
