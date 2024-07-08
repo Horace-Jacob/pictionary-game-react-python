@@ -34,6 +34,15 @@ export const WaitingRoomSection: React.FC<ILiveGameSection> = ({
     const data = {
       roomCode: roomCode,
     };
+    // socket.emit("checkPlayerCount", data);
+    // socket.on("checkPlayerCount", (playerCount) => {
+    //   if (playerCount.data === 1) {
+    //     gameEventNotify("Require at least 2 players to start the game");
+    //   } else if (playerCount.data > 1) {
+    //     setGameStatus(true);
+    //     socket.emit("startGame", data);
+    //   }
+    // });
     setGameStatus(true);
     socket.emit("startGame", data);
     setBoardChangeStatus(false);
@@ -61,7 +70,6 @@ export const WaitingRoomSection: React.FC<ILiveGameSection> = ({
       setGameStatus(deserializedData.status);
       setHostEmail(deserializedData.hostEmail);
       setPlayerPictures(Object.values(deserializedData.player_pictures));
-      console.log(data);
     });
     socket.on("playerDisconnected", ({ message, data }) => {
       const deserializedData = JSON.parse(data);

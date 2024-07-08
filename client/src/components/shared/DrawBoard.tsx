@@ -1,129 +1,160 @@
-import React from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { useSocket } from "../../lib/SocketProvider";
-import {
-  CanvasPath,
-  ExportImageType,
-  ReactSketchCanvas,
-  ReactSketchCanvasProps,
-  ReactSketchCanvasRef,
-} from "react-sketch-canvas";
+import { debounce } from "lodash";
+interface Point {
+  x: number;
+  y: number;
+}
 
-interface IDrawBoard {
+interface DrawAction {
+  type: "start" | "move" | "end";
+  point: Point;
+  color: string;
+  thickness: number;
+  tool: "brush" | "eraser";
+}
+
+interface DrawBoardProps {
   roomCode?: string;
 }
 
-export const DrawBoard: React.FC<IDrawBoard> = ({ roomCode }) => {
-  const canvasRef = React.useRef<HTMLCanvasElement>(null);
-  const socket = useSocket();
-  React.useEffect(() => {
-    const canvas = canvasRef.current!;
-    const context = canvas.getContext("2d")!;
-    let drawing = false;
+export const DrawBoard: React.FC<DrawBoardProps> = ({ roomCode }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [color, setColor] = useState("#000000");
+  const socketRef = useSocket();
+  const [thickness, setThickness] = useState(2);
+  const [tool, setTool] = useState<"brush" | "eraser">("brush");
 
-    const startDrawing = (event: MouseEvent) => {
-      drawing = true;
-      context.beginPath();
-      context.moveTo(
-        event.clientX - canvas.offsetLeft,
-        event.clientY - canvas.offsetTop
-      );
-    };
-
-    const draw = (event: MouseEvent) => {
-      if (!drawing) return;
-      context.lineTo(
-        event.clientX - canvas.offsetLeft,
-        event.clientY - canvas.offsetTop
-      );
-      context.stroke();
-    };
-
-    const stopDrawing = () => {
-      drawing = false;
-      const data = {
-        roomCode: roomCode,
-        drawingData: canvas.toDataURL(),
-      };
-      socket.emit("draw", data);
-    };
-
-    canvas.addEventListener("mousedown", startDrawing);
-    canvas.addEventListener("mousemove", draw);
-    canvas.addEventListener("mouseup", stopDrawing);
-
-    return () => {
-      canvas.removeEventListener("mousedown", startDrawing);
-      canvas.removeEventListener("mousemove", draw);
-      canvas.removeEventListener("mouseup", stopDrawing);
-    };
-  }, []);
-
-  React.useEffect(() => {
-    socket.on("draw", (data: string) => {
-      const canvas = canvasRef.current!;
-      const context = canvas.getContext("2d")!;
-      const img = new Image();
-      img.onload = () => {
-        context.drawImage(img, 0, 0);
-      };
-      img.src = data;
+  useEffect(() => {
+    socketRef.on("draw_action", (action: DrawAction) => {
+      drawOnCanvas(action);
     });
+    socketRef.on("load_drawing", (actions: DrawAction[]) => {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const context = canvas.getContext("2d");
+        if (context) {
+          context.clearRect(0, 0, canvas.width, canvas.height);
+          actions.forEach((action) => drawOnCanvas(action));
+        }
+      }
+    });
+  });
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (context) {
+      context.lineCap = "round";
+      context.lineJoin = "round";
+      context.lineWidth = 2;
+    }
   }, []);
+
+  const drawOnCanvas = (action: DrawAction) => {
+    requestAnimationFrame(() => {
+      const canvas = canvasRef.current;
+      const context = canvas?.getContext("2d");
+      if (!context) return;
+
+      context.strokeStyle = action.tool === "eraser" ? "#FFFFFF" : action.color;
+      context.lineWidth = action.thickness;
+
+      switch (action.type) {
+        case "start":
+          context.beginPath();
+          context.moveTo(action.point.x, action.point.y);
+          break;
+        case "move":
+          context.lineTo(action.point.x, action.point.y);
+          context.stroke();
+          break;
+        case "end":
+          context.closePath();
+          break;
+      }
+    });
+  };
+
+  const getMousePos = (
+    canvas: HTMLCanvasElement,
+    evt: React.MouseEvent
+  ): Point => {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: evt.clientX - rect.left,
+      y: evt.clientY - rect.top,
+    };
+  };
+
+  const handleMouseDown = (evt: React.MouseEvent<HTMLCanvasElement>) => {
+    setIsDrawing(true);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const point = getMousePos(canvas, evt);
+    const action: DrawAction = { type: "start", point, color, thickness, tool };
+    socketRef.emit("draw_action", { roomCode, action });
+    drawOnCanvas(action);
+  };
+
+  const handleMouseMove = (evt: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const point = getMousePos(canvas, evt);
+    const action: DrawAction = { type: "move", point, color, thickness, tool };
+    socketRef.emit("draw_action", { roomCode, action });
+    drawOnCanvas(action);
+  };
+
+  const handleMouseUp = () => {
+    setIsDrawing(false);
+    const action: DrawAction = {
+      type: "end",
+      point: { x: 0, y: 0 },
+      color,
+      thickness,
+      tool,
+    };
+    socketRef.emit("draw_action", { roomCode, action });
+  };
 
   return (
-    <div className="flex justify-center items-center h-screen">
+    <div>
+      <div>
+        <input
+          type="color"
+          value={color}
+          onChange={(e) => setColor(e.target.value)}
+          disabled={tool === "eraser"}
+        />
+        <input
+          type="range"
+          min="1"
+          max="20"
+          value={thickness}
+          onChange={(e) => setThickness(Number(e.target.value))}
+        />
+        <button onClick={() => setTool("brush")} disabled={tool === "brush"}>
+          Brush
+        </button>
+        <button onClick={() => setTool("eraser")} disabled={tool === "eraser"}>
+          Eraser
+        </button>
+      </div>
       <canvas
         ref={canvasRef}
         width={800}
         height={600}
-        className="border"
-        style={{ touchAction: "none" }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseOut={handleMouseUp}
+        style={{ border: "1px solid #000" }}
       />
     </div>
   );
 };
-
-// export const DrawBoard: React.FC<IDrawBoard> = ({ roomCode }) => {
-//   const [paths, setPaths] = React.useState<CanvasPath[]>([]);
-//   const socket = useSocket();
-//   const [lastStroke, setLastStroke] = React.useState<{
-//     stroke: CanvasPath | null;
-//     isEraser: boolean | null;
-//   }>({ stroke: null, isEraser: null });
-//   const canvasRef = React.createRef<ReactSketchCanvasRef>();
-//   const onChange = (updatedPaths: CanvasPath[]): void => {
-//     setPaths(updatedPaths);
-
-//     socket.emit("draw", { roomCode, paths: paths });
-//   };
-
-//   const clearCanvas = (): void => {
-//     setPaths([]);
-//     socket.emit("clear", { roomCode });
-//   };
-
-//   React.useEffect(() => {
-//     socket.on("draw", (data) => {
-//       // Update paths based on received data
-//       setPaths(data.paths);
-//     });
-
-//     socket.on("clear", () => {
-//       // Clear the canvas on receiving clear event
-//       setPaths([]);
-//     });
-
-//     return () => {
-//       // Cleanup on component unmount
-//       socket.disconnect();
-//     };
-//   }, []);
-
-//   return (
-//     <ReactSketchCanvas
-//       ref={canvasRef}
-//       onChange={onChange}
-//       // onStroke={(stroke, isEraser) => setLastStroke({ stroke, isEraser })}
-//     />
-//   );
-// };

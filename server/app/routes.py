@@ -62,6 +62,7 @@ class UserList(Resource):
         serialized_users = user_schema.dump(users)
         redis_client.set('users', json.dumps(serialized_users))
         return jsonify({'users': serialized_users})
+    
 
 api.add_resource(UserList, '/users')
 api.add_resource(LoginResource, "/login")

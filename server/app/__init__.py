@@ -9,6 +9,7 @@ import redis
 from rq import Queue
 from .redis_conn import setup_redis
 from flask_session import Session
+import json
 
 app = Flask(__name__)
 cors = CORS(app, supports_credentials=True)
@@ -26,4 +27,6 @@ redis_client = redis.StrictRedis.from_url(app.config['SESSION_REDIS'])
 q = Queue(connection=redis_client)
 
 from app import routes, socket_server
+
+
 
